@@ -125,7 +125,7 @@ export class EngagePanel {
     closeBtn?.addEventListener('click', () => this.hide());
 
     this.onKeyDownBound = this.onKeyDown.bind(this);
-    document.addEventListener('keydown', this.onKeyDownBound);
+    document.addEventListener('keydown', this.onKeyDownBound, true);
   }
 
   handleMessage(message: EngageMessage): void {
@@ -501,17 +501,21 @@ export class EngagePanel {
    * Escape closes the engage overlay.
    */
   private onKeyDown(e: KeyboardEvent): void {
-    if (e.key === 'Escape' && this.isVisible) {
-      e.preventDefault();
-      this.hide();
-    }
+    const isLoadingVisible =
+      this.loadingOverlay && !this.loadingOverlay.classList.contains('hidden');
+    if (e.key !== 'Escape' || (!this.isVisible && !isLoadingVisible)) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    this.setLoadingState(false);
+    this.hide();
   }
 
   /**
    * Clean up global listeners.
    */
   destroy(): void {
-    document.removeEventListener('keydown', this.onKeyDownBound);
+    document.removeEventListener('keydown', this.onKeyDownBound, true);
     if (this.loadingTickerId !== null) {
       window.clearInterval(this.loadingTickerId);
       this.loadingTickerId = null;
